@@ -1,16 +1,34 @@
-
+import os
+import json
 import asyncio
 import aiohttp
 import tibber
 import firebase_admin
 from firebase_admin import credentials, db
+from flask import Flask
+import threading
 
-# Initialize Firebase (run once)
-cred = credentials.Certificate("tibber-live-data-2efea-firebase-adminsdk-fbsvc-d10c5be4f1.json")  # Path to your service account key
+# ------------------------
+# Flask setup (keeps Render service alive)
+# ------------------------
+app = Flask(__name__)
+
+@app.route("/")
+def index():
+    return "Tibber-Firebase worker is running!"
+
+# ------------------------
+# Firebase setup
+# ------------------------
+cred_dict = json.loads(os.getenv("FIREBASE_CREDS"))
+cred = credentials.Certificate(cred_dict)
 firebase_admin.initialize_app(cred, {
-    "databaseURL": "https://tibber-live-data-2efea-default-rtdb.firebaseio.com/"  # Replace with your Firebase DB URL
+    "databaseURL": os.getenv("FIREBASE_DB_URL")
 })
 
+# ------------------------
+# Tibber callback
+# ------------------------
 def _callback(pkg):
     data = pkg.get("data")
     if data is None:
@@ -27,15 +45,16 @@ def _callback(pkg):
     ref = db.reference("/tibber/powerProduction")
     ref.set(power_prod)  # Overwrites with latest value
 
-async def run():
+# ------------------------
+# Tibber async loop
+# ------------------------
+async def run_tibber():
     async with aiohttp.ClientSession() as session:
         tibber_connection = tibber.Tibber(
-            "25B2F7202370B81FB74584E153E092913648E942F5E10D8F11E09B4F3C5D6AFE-1",
-            websession=session,
-            user_agent="my_app/1.0"
+            os.getenv("TIBBER_KEY"),
+            websession=session
         )
         await tibber_connection.update_info()
-
         home = tibber_connection.get_homes()[0]
 
         # Subscribe to real-time data
@@ -45,7 +64,18 @@ async def run():
         while True:
             await asyncio.sleep(10)
 
+# ------------------------
+# Run asyncio in separate thread
+# ------------------------
+def start_loop():
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(run_tibber())
+
+threading.Thread(target=start_loop, daemon=True).start()
+
+# ------------------------
+# Start Flask server
+# ------------------------
 if __name__ == "__main__":
-    asyncio.run(run())
-
-
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))

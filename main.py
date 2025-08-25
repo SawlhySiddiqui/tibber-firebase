@@ -29,7 +29,7 @@ firebase_admin.initialize_app(cred, {
 # ------------------------
 # Tibber callback
 # ------------------------
-def _callback(pkg):
+async def _callback(pkg):
     data = pkg.get("data")
     if data is None:
         return
@@ -58,7 +58,7 @@ async def run_tibber():
         home = tibber_connection.get_homes()[0]
 
         # Subscribe to real-time data
-        await home.rt_subscribe(_callback)
+        await home.rt_subscribe(async_callback=_callback)
 
         # Keep alive
         while True:

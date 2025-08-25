@@ -58,8 +58,8 @@ async def run_tibber():
         home = tibber_connection.get_homes()[0]
 
         # Subscribe to real-time data
-        await home.rt_subscribe(callback=_callback,loop=asyncio.get_event_loop())
-
+        loop = asyncio.get_event_loop()
+        await home.rt_subscribe(_callback, loop)
         # Keep alive
         while True:
             await asyncio.sleep(10)

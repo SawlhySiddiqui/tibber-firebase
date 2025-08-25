@@ -1,6 +1,8 @@
+setuptools
 firebase-admin
 tibber
 aiohttp
 flask
 gunicorn
+
 

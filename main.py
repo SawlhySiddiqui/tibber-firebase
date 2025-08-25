@@ -52,7 +52,7 @@ async def _callback(pkg):
 async def run_tibber():
     async with aiohttp.ClientSession() as session:
         tibber_connection = tibber.Tibber(
-            os.getenv("TIBBER_KEY"),
+            access_token=os.getenv("TIBBER_KEY"),
             websession=session
             # user_agent="my_app/1.0",
         )

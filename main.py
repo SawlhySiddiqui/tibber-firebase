@@ -7,6 +7,7 @@ import firebase_admin
 from firebase_admin import credentials, db
 from flask import Flask
 import threading
+from dotenv import load_dotenv
 
 # ------------------------
 # Flask setup (keeps Render service alive)
@@ -53,12 +54,14 @@ async def run_tibber():
         tibber_connection = tibber.Tibber(
             os.getenv("TIBBER_KEY"),
             websession=session
+            # user_agent="my_app/1.0",
         )
+       
         await tibber_connection.update_info()
         home = tibber_connection.get_homes()[0]
-
+       
         # Subscribe to real-time data
-        await home.rt_subscribe(callback=_callback,loop=asyncio.get_event_loop())
+        await home.rt_subscribe(callback=_callback,)
 
         # Keep alive
         while True:

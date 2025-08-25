@@ -64,8 +64,8 @@ async def run_tibber():
         try:
             await tibber_connection.update_info()
             home = tibber_connection.get_homes()[0]
-            print(f"Connected to home: {home.name}")
-            print(f"Supports realtime: {home.has_real_time_consumption}")
+            print("Connected to home:", home.home_info.get("name"))
+            print("Supports realtime:", home.has_real_time_consumption)
 
             # Subscribe to realtime data
             await home.rt_subscribe(async_callback=_callback)

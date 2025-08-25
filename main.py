@@ -7,7 +7,7 @@ import firebase_admin
 from firebase_admin import credentials, db
 from flask import Flask
 import threading
-from dotenv import load_dotenv
+
 
 # ------------------------
 # Flask setup (keeps Render service alive)

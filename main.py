@@ -69,8 +69,9 @@ async def run_tibber():
 
 
             # Subscribe to realtime data
-            await home.rt_subscribe(async_callback=_callback)
-
+            print("Subscribing to Tibber RT data...")
+            await home.rt_subscribe(callback=_callback)
+            print("Subscribed successfully.")
             # Keep alive
             while True:
                 await asyncio.sleep(10)

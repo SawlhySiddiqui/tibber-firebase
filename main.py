@@ -21,7 +21,8 @@ def index():
 # Firebase setup
 # ------------------------
 try:
-    cred = credentials.Certificate("serviceAccountKey.json")
+    cred_dict = json.loads(os.getenv("FIREBASE_CREDS"))
+    cred = credentials.Certificate(cred_dict)
     firebase_admin.initialize_app(cred, {
         "databaseURL": os.getenv("FIREBASE_DB_URL")
     })

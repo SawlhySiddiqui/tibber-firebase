@@ -67,7 +67,7 @@ async def run_tibber():
 
             # Subscribe to realtime data using async generator
             print("Subscribing to Tibber RT data...")
-            async for measurement in home.rt_subscription():
+            async for measurement in home.rt_subscribe():
                 power_prod = measurement.get("powerProduction")
                 print("Power Production:", power_prod)
                 # Push to Firebase with error handling

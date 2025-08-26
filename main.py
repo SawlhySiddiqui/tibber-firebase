@@ -21,8 +21,7 @@ def index():
 # Firebase setup
 # ------------------------
 try:
-    cred_dict = json.loads(os.getenv("FIREBASE_CREDS"))
-    cred = credentials.Certificate(cred_dict)
+    cred = credentials.Certificate("serviceAccountKey.json")
     firebase_admin.initialize_app(cred, {
         "databaseURL": os.getenv("FIREBASE_DB_URL")
     })
@@ -54,6 +53,7 @@ async def _callback(pkg):
 # ------------------------
 # Tibber async loop
 # ------------------------
+# ///copilot update this code///
 async def run_tibber():
     async with aiohttp.ClientSession() as session:
         tibber_connection = tibber.Tibber(
@@ -64,19 +64,44 @@ async def run_tibber():
         try:
             await tibber_connection.update_info()
             home = tibber_connection.get_homes()[0]
-           
 
-
-            # Subscribe to realtime data
+            # Subscribe to realtime data using async generator
             print("Subscribing to Tibber RT data...")
-            await home.rt_subscribe(callback=_callback)
-            print("Subscribed successfully.")
-            # Keep alive
-            while True:
-                await asyncio.sleep(10)
+            async for measurement in home.rt_subscription():
+                power_prod = measurement.get("powerProduction")
+                print("Power Production:", power_prod)
+                # Push to Firebase with error handling
+                try:
+                    db.reference("/tibber/powerProduction").set(power_prod)
+                except Exception as e:
+                    print("Firebase push error:", e)
 
         except Exception as e:
             print("Tibber connection error:", e)
+
+# async def run_tibber():
+#     async with aiohttp.ClientSession() as session:
+#         tibber_connection = tibber.Tibber(
+#             access_token=os.getenv("TIBBER_KEY"),
+#             websession=session
+#         )
+
+#         try:
+#             await tibber_connection.update_info()
+#             home = tibber_connection.get_homes()[0]
+           
+
+
+#             # Subscribe to realtime data
+#             print("Subscribing to Tibber RT data...")
+#             await home.rt_subscribe(callback=_callback)
+#             print("Subscribed successfully.")
+#             # Keep alive
+#             while True:
+#                 await asyncio.sleep(10)
+
+#         except Exception as e:
+#             print("Tibber connection error:", e)
 
 # ------------------------
 # Run asyncio in separate thread
